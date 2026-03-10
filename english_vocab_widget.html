@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>영어 발음 학습 위젯</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --line: #d9e1ec;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #6fa0d6;
+      --accent-2: #e8f1fb;
+      --danger: #dc2626;
+      --ok: #15803d;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+      color: var(--text);
+font-size: 14px;
+    }
+
+    .app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .titlebox {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 10px 12px;
+      flex: 1;
+    }
+
+.titlebox h1 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.titlebox p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(88px, 1fr));
+      gap: 8px;
+      min-width: 380px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 450px minmax(420px, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .right-column {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+.panel-head {
+  padding: 11px 14px;
+  background: linear-gradient(180deg, #f6fbff 0%, var(--accent-2) 100%);
+  border-bottom: 1px solid var(--line);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+    .panel-body {
+      padding: 12px;
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+input, select, button, textarea {
+  font: inherit;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  outline: none;
+  background: #fff;
+}
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(111,160,214,0.15);
+    }
+
+    button {
+      cursor: pointer;
+      transition: 0.15s ease;
+      background: #fff;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-soft {
+      background: var(--accent-2);
+      border-color: #c9dbee;
+    }
+
+    .btn-danger {
+      color: var(--danger);
+      border-color: #fecaca;
+      background: #fff5f5;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 92px 92px;
+      gap: 6px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+.group-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  margin-bottom: 8px;
+}
+
+/* 버튼 크기 축소 */
+.group-toolbar button {
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* 그룹 select 길이 축소 */
+.group-toolbar select {
+  width: 90px;
+  padding: 4px 6px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+    .group-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .group-tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 6px 10px;
+      text-align: center;
+      border-radius: 10px;
+      height: 36px;
+    }
+
+    .group-tab.user-group {
+      background: #d9e6cb;
+      border-color: #d1e6cb;
+      color: #2b2321;
+    }
+
+    .group-tab.user-group:hover {
+      filter: brightness(0.98);
+    }
+
+    .group-tab.active {
+      background: var(--accent-2);
+      border-color: #c9dbee;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .group-tab.user-group.active {
+      background: #c6a8a0;
+      border-color: #a9867d;
+      color: #201816;
+      font-weight: 700;
+    }
+
+    .inline-select {
+      min-width: 140px;
+    }
+
+.word-list {
+  display: grid;
+  gap: 6px;
+  max-height: 620px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+    .word-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      cursor: pointer;
+      background: #fff;
+    }
+
+    .word-item.active {
+      border-color: var(--accent);
+      background: #f8fbff;
+      box-shadow: inset 0 0 0 1px rgba(111,160,214,0.2);
+    }
+
+    .word-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .word-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: #f3f4f6;
+  color: var(--muted);
+  border: 1px solid #e5e7eb;
+}
+
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+
+    .detail-empty,
+    .test-empty {
+      padding: 28px 18px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .detail-word {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+.detail-word h2 {
+  margin: 0 0 3px;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+    .phonetic {
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .section {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+
+    .section h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .meaning-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.7;
+    }
+
+    .example-box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fafcff;
+      padding: 10px;
+      line-height: 1.55;
+    }
+
+    .test-head {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .question-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fbfdff;
+      margin-bottom: 12px;
+    }
+
+    .question-type {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .choices {
+      display: grid;
+      gap: 8px;
+    }
+
+    .choice {
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .choice.correct {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: var(--ok);
+    }
+
+    .choice.wrong {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .feedback {
+      margin-top: 12px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      line-height: 1.7;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .hidden { display: none !important; }
+
+
+
+.header .titlebox,
+.header .stats {
+  min-height: 96px;
+}
+
+
+
+.group-toolbar button,
+.group-toolbar select,
+.group-tabs .group-tab,
+.toolbar input,
+.toolbar select,
+.toolbar button,
+.row button {
+  height: 36px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.detail-word {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.detail-word .row {
+  gap: 6px;
+  margin: 0;
+}
+
+.detail-word .row button {
+  padding: 8px 12px;
+  font-size: 14px;
+  height: 42px;
+}
+
+.meaning-list {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.question-text {
+  font-size: 18px;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.question-box {
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.test-head {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.footer-note {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 900px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .stats {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main {
+    grid-template-columns: 1fr;
+  }
+
+  .group-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .toolbar {
+    grid-template-columns: 1fr 92px 92px;
+  }
+
+  .detail-word {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .test-head,
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .group-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* 👇 추가: 자체 설정창(Modal) 디자인 👇 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(2px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .modal-box {
+      background: #1e1e24; padding: 20px; border-radius: 12px;
+      border: 1px solid #444; width: 280px;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      color: #fff; text-align: left;
+    }
+    .modal-box label { font-size: 12px; color: #9aa3ad; font-weight: bold; }
+    .modal-box input {
+      background: #121218; color: #fff; border: 1px solid #444;
+      padding: 10px; border-radius: 6px; font-size: 13px; outline: none;
+    }
+    .modal-box input:focus { border-color: #8fd3ff; }
+    .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 5px; }
+    .modal-buttons button { padding: 6px 12px; font-size: 13px; border-radius: 6px; }
+    /* 👆 여기까지 👆 */
+
+
+
+
+
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="titlebox">
+        <h1>영어 발음 학습 위젯</h1>
+        <p>
+          필요한 영단어를 저장하고, 클릭하면 발음, 발음기호, 뜻, 예문으로 바로 공부할 수 있습니다.
+          저장한 단어들은 테스트 문제로 자동 재활용됩니다.
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="label">전체 단어</div><div id="statTotal" class="value">0</div></div>
+        <div class="stat"><div class="label">오늘 추가</div><div id="statToday" class="value">0</div></div>
+        <div class="stat"><div class="label">즐겨찾기</div><div id="statFav" class="value">0</div></div>
+        <div class="stat"><div class="label">오답 누적</div><div id="statWrong" class="value">0</div></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <section class="panel">
+
+
+
+<div class="panel-head">단어 추가 · 목록</div>
+          <div class="panel-body">
+
+            <div class="row" style="margin-bottom: 12px; padding: 10px; background: #e8f1fb; border-radius: 12px; justify-content: space-between; align-items: center;">
+              <div style="font-weight: bold; color: #1f2937; font-size: 13px;">☁️ 클라우드 동기화</div>
+              <div class="row" style="margin: 0;">
+                <button id="syncSettingBtn" class="btn-soft" type="button" style="background:#555; color:#fff; border:none; padding: 6px 10px; font-size: 13px;" title="동기화 설정">⚙️</button>
+                <button id="syncUpBtn" class="btn-primary" type="button" style="background:#b1a995; border-color:#8a8373; color:#111; padding: 6px 10px; font-size: 13px;">구름저장☁️</button>
+                <button id="syncDownBtn" class="btn-primary" type="button" style="background:#e7a86b; border-color:#b58454; color:#111; padding: 6px 10px; font-size: 13px;">불러오기☁️</button>
+              </div>
+            </div>
+            <form id="addForm" class="add-form">
+
+
+
+
+            <input id="wordInput" type="text" placeholder="예: analyze" autocomplete="off" />
+            <button class="btn-primary" type="submit">단어 추가</button>
+          </form>
+
+          <div class="group-toolbar">
+            <button id="createGroupBtn" class="btn-soft" type="button">탭생성</button>
+            <button id="deleteGroupBtn" class="btn-danger" type="button">탭삭제</button>
+            <select id="groupAssignSelect" class="inline-select">
+              <option value="">그룹 지정</option>
+            </select>
+            <button id="assignGroupBtn" type="button">저장</button>
+            <button id="removeGroupBtn" type="button">해제</button>
+          </div>
+
+          <div id="groupTabs" class="group-tabs"></div>
+
+          <div class="toolbar">
+            <input id="searchInput" type="text" placeholder="단어 검색" />
+            <select id="sortSelect">
+              <option value="recent">최근순</option>
+              <option value="alpha">알파벳순</option>
+            </select>
+            <button id="favoriteFilterBtn" class="btn-soft" type="button">즐겨찾기</button>
+          </div>
+
+          <div id="wordList" class="word-list"></div>
+
+          <div class="section">
+            <div class="row">
+              <button id="exportBtn" type="button">JSON 내보내기</button>
+              <button id="importBtn" type="button">JSON 불러오기</button>
+              <input id="importFile" class="hidden" type="file" accept="application/json" />
+              <button id="clearAllBtn" class="btn-danger" type="button">전체 삭제</button>
+            </div>
+            <div class="footer-note">
+              자동 뜻/예문/발음기호는 무료 사전 API를 사용합니다. 한국어 뜻과 예문 해석은 번역 API가 성공할 때 자동 채워지고,
+              실패하면 영어 원문만 표시됩니다.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="right-column">
+        <section class="panel">
+          <div class="panel-head">학습 상세</div>
+          <div id="detailPanel" class="panel-body"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">학습 테스트</div>
+          <div class="panel-body">
+            <div class="test-head">
+              <select id="testModeSelect">
+                <option value="meaning_to_word">뜻 → 단어</option>
+                <option value="word_to_meaning">단어 → 뜻</option>
+                <option value="example_blank">예문 빈칸 → 단어</option>
+              </select>
+              <select id="testRangeSelect">
+                <option value="all">전체 단어</option>
+                <option value="today">오늘 추가 단어</option>
+                <option value="favorite">즐겨찾기</option>
+                <option value="wrong">오답노트</option>
+              </select>
+            </div>
+
+            <div class="row">
+              <button id="startTestBtn" class="btn-primary" type="button">테스트 시작</button>
+              <button id="nextQuestionBtn" type="button">다음 문제</button>
+              <button id="speakQuestionBtn" type="button">문제 발음 듣기</button>
+            </div>
+
+            <div id="testPanel"></div>
+          </div>
+        </section>
+      </div>
+
+
+</div>
+  </div>
+
+  <div class="modal-overlay" id="sync-modal">
+    <div class="modal-box">
+      <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">☁️ 구름 동기화 설정</div>
+      <label>GitHub Token (ghp_...)</label>
+      <input type="text" id="modal-token" placeholder="토큰을 입력하세요">
+      <label>Gist ID (방 번호)</label>
+      <input type="text" id="modal-gistid" placeholder="비워두면 새로 생성됩니다">
+      <div class="modal-buttons">
+        <button id="modal-cancel" type="button" style="background:#444; border:none; color:#fff; cursor:pointer;">취소</button>
+        <button id="modal-save" type="button" style="background:#8fd3ff; border:none; color:#111; cursor:pointer;">저장</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // ==============================
+    // 여기부터 Step 1: 핵심 설정값
+    // ==============================
+    const STORAGE_KEY = 'memo_widget_v2_english_words';
+    const TEST_STATE_KEY = 'memo_widget_v2_english_test_state';
+    const GROUPS_KEY = 'memo_widget_v2_english_groups';
+
+
+// ==============================
+    // 여기부터 Step 2: 전역 상태
+    // ==============================
+    const SYNC_KEY = 'memo_widget_v2_english_sync';
+    let syncInfo = JSON.parse(localStorage.getItem(SYNC_KEY) || '{"githubToken":"","gistId":""}');
+    function saveSyncInfo() { localStorage.setItem(SYNC_KEY, JSON.stringify(syncInfo)); }
+
+
+    let words = loadWords();
+    let groups = loadGroups();
+    let testState = loadTestState();
+    let selectedId = words[0]?.id ?? null;
+
+    let filters = {
+      favoriteOnly: false,
+      search: '',
+      sort: 'recent',
+      group: 'all'
+    };
+
+    words = words.map(word => ({
+      ...word,
+      group: word.group || '',
+      testStats: word.testStats || { shown: 0, correct: 0, wrong: 0 }
+    }));
+
+    // ==============================
+    // 여기부터 Step 3: DOM 참조
+    // ==============================
+    const wordList = document.getElementById('wordList');
+    const detailPanel = document.getElementById('detailPanel');
+    const testPanel = document.getElementById('testPanel');
+    const wordInput = document.getElementById('wordInput');
+    const groupTabs = document.getElementById('groupTabs');
+    const groupAssignSelect = document.getElementById('groupAssignSelect');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const testModeSelect = document.getElementById('testModeSelect');
+    const testRangeSelect = document.getElementById('testRangeSelect');
+    const importFile = document.getElementById('importFile');
+
+    // ==============================
+    // 여기부터 Step 4: 초기 렌더
+    // ==============================
+    renderAll();
+
+   // ==============================
+    // 여기부터 Step 5: 이벤트 바인딩
+    // ==============================
+    // 👇 동기화 이벤트 바인딩 👇
+    document.getElementById('syncSettingBtn').addEventListener('click', () => {
+      document.getElementById('modal-token').value = syncInfo.githubToken || '';
+      document.getElementById('modal-gistid').value = syncInfo.gistId || '';
+      document.getElementById('sync-modal').style.display = 'flex';
+    });
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+      document.getElementById('sync-modal').style.display = 'none';
+    });
+    document.getElementById('modal-save').addEventListener('click', () => {
+      syncInfo.githubToken = document.getElementById('modal-token').value.trim();
+      syncInfo.gistId = document.getElementById('modal-gistid').value.trim();
+      saveSyncInfo();
+      document.getElementById('sync-modal').style.display = 'none';
+      alert('⚙️ 동기화 설정이 저장되었습니다.');
+    });
+    document.getElementById('syncUpBtn').addEventListener('click', syncUpToGist);
+    document.getElementById('syncDownBtn').addEventListener('click', syncDownFromGist);
+    // 👆 여기까지 👆
+    document.getElementById('addForm').addEventListener('submit', onAddWord);
+
+    searchInput.addEventListener('input', (e) => {
+      filters.search = e.target.value.trim().toLowerCase();
+      renderWordList();
+    });
+
+    sortSelect.addEventListener('change', (e) => {
+      filters.sort = e.target.value;
+      renderWordList();
+    });
+
+    document.getElementById('favoriteFilterBtn').addEventListener('click', () => {
+      filters.favoriteOnly = !filters.favoriteOnly;
+      renderWordList();
+      renderGroupTabs();
+    });
+
+    document.getElementById('createGroupBtn').addEventListener('click', createGroup);
+    document.getElementById('deleteGroupBtn').addEventListener('click', deleteCurrentGroup);
+    document.getElementById('assignGroupBtn').addEventListener('click', assignSelectedWordToGroup);
+    document.getElementById('removeGroupBtn').addEventListener('click', removeSelectedWordFromGroup);
+
+    document.getElementById('startTestBtn').addEventListener('click', startTest);
+    document.getElementById('nextQuestionBtn').addEventListener('click', nextQuestion);
+    document.getElementById('speakQuestionBtn').addEventListener('click', speakCurrentQuestion);
+
+    document.getElementById('exportBtn').addEventListener('click', exportWords);
+    document.getElementById('importBtn').addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', importWords);
+    document.getElementById('clearAllBtn').addEventListener('click', clearAllWords);
+
+    // ==============================
+    // 여기부터 Step 6: 데이터 로드/저장
+    // ==============================
+    function loadWords() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveWords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    }
+
+    function loadGroups() {
+      try {
+        const raw = localStorage.getItem(GROUPS_KEY);
+        const parsed = raw ? JSON.parse(raw) : ['생활영어', '과학영어', '경제영어'];
+        return Array.isArray(parsed) ? parsed : ['생활영어', '과학영어', '경제영어'];
+      } catch {
+        return ['생활영어', '과학영어', '경제영어'];
+      }
+    }
+
+    function saveGroups() {
+      localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+    }
+
+    function loadTestState() {
+      try {
+        const raw = localStorage.getItem(TEST_STATE_KEY);
+        return raw ? JSON.parse(raw) : createEmptyTestState();
+      } catch {
+        return createEmptyTestState();
+      }
+    }
+
+    function saveTestState() {
+      localStorage.setItem(TEST_STATE_KEY, JSON.stringify(testState));
+    }
+
+    function createEmptyTestState() {
+      return {
+        mode: 'meaning_to_word',
+        range: 'all',
+        pool: [],
+        current: null,
+        score: { shown: 0, correct: 0, wrong: 0 },
+        answered: false
+      };
+    }
+
+    // ==============================
+    // 여기부터 Step 7: 단어 추가 + API 조회
+    // ==============================
+    async function onAddWord(e) {
+      e.preventDefault();
+      const raw = wordInput.value.trim();
+      const normalized = normalizeWord(raw);
+
+      if (!normalized) {
+        alert('영단어를 입력해 주세요.');
+        wordInput.focus();
+        return;
+      }
+
+      setBusy(true, '단어 정보를 불러오는 중입니다...');
+
+      try {
+        const existing = words.find(w => w.word.toLowerCase() === normalized.toLowerCase());
+        const entry = await buildWordEntry(normalized, existing);
+
+        if (existing) {
+          Object.assign(existing, entry, {
+            id: existing.id,
+            createdAt: existing.createdAt,
+            favorite: existing.favorite,
+            testStats: existing.testStats || { shown: 0, correct: 0, wrong: 0 }
+          });
+          existing.updatedAt = new Date().toISOString();
+          selectedId = existing.id;
+        } else {
+          words.unshift(entry);
+          selectedId = entry.id;
+        }
+
+        saveWords();
+        renderAll();
+        wordInput.value = '';
+      } catch (err) {
+        console.error(err);
+        alert('단어 정보를 가져오지 못했습니다. 인터넷 연결 또는 사전 응답을 확인해 주세요.');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function normalizeWord(text) {
+      return text.replace(/[^a-zA-Z\-\s']/g, '').trim();
+    }
+
+    async function buildWordEntry(word, existing) {
+      const dict = await fetchDictionaryData(word);
+      const phonetic = dict.phonetic || existing?.phonetic || '발음기호 없음';
+      const meaningsEn = dict.meaningsEn.slice(0, 3);
+      const exampleEn = dict.exampleEn || existing?.exampleEn || `${capitalize(word)} is used in a sentence.`;
+      const partOfSpeech = dict.partOfSpeech || existing?.partOfSpeech || 'unknown';
+      const audio = dict.audio || existing?.audio || '';
+
+      const meaningKoList = await translateMeanings(meaningsEn);
+      const exampleKo = await translateText(exampleEn);
+
+      return {
+        id: existing?.id || `word_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        word: capitalize(word),
+        phonetic,
+        partOfSpeech,
+        meaningKoList: meaningKoList.length ? meaningKoList : (existing?.meaningKoList || ['뜻 번역 실패']),
+        meaningEnList: meaningsEn.length ? meaningsEn : (existing?.meaningEnList || ['No English meaning found.']),
+        exampleEn,
+        exampleKo: exampleKo || existing?.exampleKo || '예문 해석 없음',
+        audio,
+        createdAt: existing?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        favorite: existing?.favorite || false,
+        testStats: existing?.testStats || { shown: 0, correct: 0, wrong: 0 },
+        group: existing?.group || ''
+      };
+    }
+
+    async function fetchDictionaryData(word) {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+
+      if (!res.ok) {
+        return {
+          phonetic: '',
+          audio: '',
+          meaningsEn: [],
+          exampleEn: '',
+          partOfSpeech: ''
+        };
+      }
+
+      const data = await res.json();
+      const entry = data[0] || {};
+      const phonetics = Array.isArray(entry.phonetics) ? entry.phonetics : [];
+      const meanings = Array.isArray(entry.meanings) ? entry.meanings : [];
+
+      const phonetic = entry.phonetic || phonetics.find(p => p.text)?.text || '';
+      const audio = phonetics.find(p => p.audio)?.audio || '';
+      const firstMeaning = meanings[0] || {};
+      const defs = meanings
+        .flatMap(m => (m.definitions || []).slice(0, 2).map(d => d.definition))
+        .filter(Boolean);
+      const example =
+        meanings.flatMap(m => (m.definitions || []).map(d => d.example)).find(Boolean) || '';
+
+      return {
+        phonetic,
+        audio,
+        meaningsEn: defs.slice(0, 3),
+        exampleEn: example,
+        partOfSpeech: firstMeaning.partOfSpeech || ''
+      };
+    }
+
+    async function translateMeanings(meaningList) {
+      const translatedList = await Promise.all(
+        meaningList.map(async (item) => {
+          const translated = await translateText(item);
+          return translated || item;
+        })
+      );
+      return translatedList;
+    }
+
+    async function translateText(text) {
+      if (!text) return '';
+
+      try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ko`;
+        const res = await fetch(url);
+        if (!res.ok) return '';
+
+        const data = await res.json();
+        const translated = data?.responseData?.translatedText || '';
+        return decodeHtml(translated);
+      } catch {
+        return '';
+      }
+    }
+
+    function decodeHtml(text) {
+      const txt = document.createElement('textarea');
+      txt.innerHTML = text;
+      return txt.value;
+    }
+
+    // ==============================
+    // 여기부터 Step 8: 렌더링
+    // ==============================
+    function renderAll() {
+      renderStats();
+      renderGroupTabs();
+      renderGroupAssignOptions();
+      renderWordList();
+      renderDetail();
+      renderTestPanel();
+    }
+
+    function renderStats() {
+      const statTotal = document.getElementById('statTotal');
+      const statToday = document.getElementById('statToday');
+      const statFav = document.getElementById('statFav');
+      const statWrong = document.getElementById('statWrong');
+
+      if (!statTotal || !statToday || !statFav || !statWrong) return;
+
+      statTotal.textContent = words.length;
+      statToday.textContent = words.filter(w => isToday(w.createdAt)).length;
+      statFav.textContent = words.filter(w => w.favorite).length;
+      statWrong.textContent = words.reduce((sum, w) => sum + (w.testStats?.wrong || 0), 0);
+    }
+
+    function renderGroupTabs() {
+      if (!groupTabs) return;
+
+      const tabs = ['all', ...groups];
+      groupTabs.innerHTML = tabs.map(group => {
+        const isActive = filters.group === group;
+        const label = group === 'all' ? '전체' : group;
+        const userGroupClass = group === 'all' ? '' : 'user-group';
+        return `<button class="group-tab ${userGroupClass} ${isActive ? 'active' : ''}" type="button" data-group="${escapeHtml(group)}">${escapeHtml(label)}</button>`;
+      }).join('');
+
+      groupTabs.querySelectorAll('[data-group]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filters.group = btn.dataset.group;
+          renderWordList();
+          renderGroupTabs();
+        });
+      });
+    }
+
+    function renderGroupAssignOptions() {
+      if (!groupAssignSelect) return;
+
+      groupAssignSelect.innerHTML =
+        `<option value="">그룹 지정</option>` +
+        groups.map(group => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join('');
+
+      const selectedWord = words.find(w => w.id === selectedId);
+      groupAssignSelect.value =
+        selectedWord?.group && groups.includes(selectedWord.group) ? selectedWord.group : '';
+    }
+
+    function renderWordList() {
+      if (!wordList) return;
+
+      const list = getFilteredWords();
+
+      if (!list.length) {
+        wordList.innerHTML = `<div class="detail-empty">저장된 단어가 없습니다.<br>왼쪽 위 입력칸에 영단어를 넣어 시작해 보세요.</div>`;
+        return;
+      }
+
+      wordList.innerHTML = list.map(w => {
+        const active = w.id === selectedId ? 'active' : '';
+        const wrong = w.testStats?.wrong || 0;
+
+        return `
+          <div class="word-item ${active}" data-id="${w.id}">
+            <div class="word-top">
+              <div class="word-title">${escapeHtml(w.word)}</div>
+              <div class="row" style="margin:0; gap:6px; justify-content:flex-end;">
+                ${w.group ? `<span class="badge">${escapeHtml(w.group)}</span>` : ''}
+                ${w.favorite ? '<span class="badge">★ 즐겨찾기</span>' : ''}
+                <span class="badge">오답 ${wrong}</span>
+              </div>
+            </div>
+            <div class="small muted">${escapeHtml(w.partOfSpeech || 'unknown')} · ${escapeHtml(w.phonetic || '발음기호 없음')}</div>
+            <div class="small" style="margin-top:6px;">${escapeHtml((w.meaningKoList && w.meaningKoList[0]) || '뜻 없음')}</div>
+          </div>
+        `;
+      }).join('');
+
+      wordList.querySelectorAll('.word-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectedId = item.dataset.id;
+          renderWordList();
+          renderDetail();
+          renderGroupAssignOptions();
+        });
+      });
+    }
+
+    function renderDetail() {
+      if (!detailPanel) return;
+
+      const word = words.find(w => w.id === selectedId);
+
+      if (!word) {
+        detailPanel.innerHTML = `<div class="detail-empty">단어를 선택하면 여기에서 발음, 뜻, 예문, 학습 버튼이 열립니다.</div>`;
+        return;
+      }
+
+      detailPanel.innerHTML = `
+        <div class="detail-word">
+          <div>
+            <h2>${escapeHtml(word.word)}</h2>
+            <div class="phonetic">${escapeHtml(word.phonetic || '발음기호 없음')} · ${escapeHtml(word.partOfSpeech || 'unknown')}</div>
+          </div>
+          <div class="row" style="justify-content:flex-end; margin:0;">
+            <button id="speakWordBtn" class="btn-primary" type="button">🔊 발음</button>
+            <button id="slowSpeakBtn" type="button">🔊 Slow</button>
+            <button id="favoriteBtn" type="button">${word.favorite ? '★ 해제' : '☆ 등록'}</button>
+            <button id="refreshBtn" type="button">새로고침</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>뜻</h3>
+          <ol class="meaning-list">
+            ${(word.meaningKoList || []).map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+          </ol>
+          <div class="small muted" style="margin-top:10px;">
+            원문 정의: ${(word.meaningEnList || []).map(item => escapeHtml(item)).join(' / ')}
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>예문</h3>
+          <div class="example-box">
+            <div><strong>EN:</strong> ${escapeHtml(word.exampleEn || '예문 없음')}</div>
+            <div style="margin-top:8px;"><strong>KO:</strong> ${escapeHtml(word.exampleKo || '해석 없음')}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>학습 기록</h3>
+          <div class="row">
+            <span class="badge">출제 ${word.testStats?.shown || 0}</span>
+            <span class="badge">정답 ${word.testStats?.correct || 0}</span>
+            <span class="badge">오답 ${word.testStats?.wrong || 0}</span>
+            <span class="badge">추가 ${formatDate(word.createdAt)}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="row">
+            <button id="testThisWordBtn" class="btn-soft" type="button">이 단어 바로 테스트</button>
+            <button id="deleteWordBtn" class="btn-danger" type="button">이 단어 삭제</button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('speakWordBtn').addEventListener('click', () => speakWord(word.word, 1));
+      document.getElementById('slowSpeakBtn').addEventListener('click', () => speakWord(word.word, 0.75));
+      document.getElementById('favoriteBtn').addEventListener('click', () => toggleFavorite(word.id));
+      document.getElementById('refreshBtn').addEventListener('click', () => refreshWord(word.id));
+      document.getElementById('deleteWordBtn').addEventListener('click', () => deleteWord(word.id));
+      document.getElementById('testThisWordBtn').addEventListener('click', () => startSingleWordTest(word.id));
+    }
+
+    function renderTestPanel() {
+      if (!testPanel) return;
+
+      if (!testState.current) {
+        testPanel.innerHTML = `<div class="test-empty">테스트를 시작하면 저장된 단어를 바탕으로<br>뜻 맞히기, 단어 맞히기, 예문 빈칸 문제를 풉니다.</div>`;
+        return;
+      }
+
+      const q = testState.current;
+      const feedback = q.feedback ? `
+        <div class="feedback">
+          <div><strong>${q.feedback.correct ? '정답입니다.' : '오답입니다.'}</strong></div>
+          <div style="margin-top:4px;">정답: <strong>${escapeHtml(q.feedback.answer)}</strong></div>
+          <div style="margin-top:4px;">뜻: ${escapeHtml(q.feedback.meaning)}</div>
+          <div style="margin-top:4px;">예문: ${escapeHtml(q.feedback.example)}</div>
+        </div>
+      ` : '';
+
+      testPanel.innerHTML = `
+        <div class="question-box">
+          <div class="question-type">모드: ${modeLabel(q.mode)} · 범위: ${rangeLabel(testState.range)}</div>
+          <div class="question-text">${escapeHtml(q.prompt)}</div>
+          <div class="choices">
+            ${q.choices.map((choice, index) => {
+              let cls = 'choice';
+              if (q.feedback) {
+                if (choice === q.answer) cls += ' correct';
+                else if (choice === q.feedback.selected) cls += ' wrong';
+              }
+              return `<button class="${cls}" type="button" data-choice-index="${index}">${escapeHtml(choice)}</button>`;
+            }).join('')}
+          </div>
+          ${feedback}
+        </div>
+        <div class="row">
+          <span class="badge">출제 ${testState.score.shown}</span>
+          <span class="badge">정답 ${testState.score.correct}</span>
+          <span class="badge">오답 ${testState.score.wrong}</span>
+        </div>
+      `;
+
+      testPanel.querySelectorAll('[data-choice-index]').forEach(btn => {
+        btn.addEventListener('click', () => answerQuestion(Number(btn.dataset.choiceIndex)));
+      });
+    }
+
+    // ==============================
+    // 여기부터 Step 9: 필터/정렬
+    // ==============================
+    function getFilteredWords() {
+      let list = [...words];
+
+      if (filters.favoriteOnly) {
+        list = list.filter(w => w.favorite);
+      }
+
+      if (filters.group !== 'all') {
+        list = list.filter(w => w.group === filters.group);
+      }
+
+      if (filters.search) {
+        list = list.filter(w => {
+          const target = `${w.word} ${(w.meaningKoList || []).join(' ')} ${(w.exampleEn || '')}`.toLowerCase();
+          return target.includes(filters.search);
+        });
+      }
+
+      if (filters.sort === 'alpha') {
+        list.sort((a, b) => a.word.localeCompare(b.word));
+      } else {
+        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+
+      return list;
+    }
+
+    // ==============================
+    // 여기부터 Step 10: 상세 기능
+    // ==============================
+    function toggleFavorite(id) {
+      const word = words.find(w => w.id === id);
+      if (!word) return;
+
+      word.favorite = !word.favorite;
+      saveWords();
+      renderAll();
+    }
+
+    function createGroup() {
+      const name = prompt('새 그룹 이름을 입력하세요.', '생활영어');
+      if (!name) return;
+
+      const normalized = name.trim();
+      if (!normalized) return;
+
+      if (normalized === 'all') {
+        alert('all은 그룹 이름으로 사용할 수 없습니다.');
+        return;
+      }
+
+      if (groups.includes(normalized)) {
+        alert('이미 같은 그룹이 있습니다.');
+        return;
+      }
+
+      groups.push(normalized);
+      saveGroups();
+      filters.group = normalized;
+      renderAll();
+    }
+
+    function deleteCurrentGroup() {
+      if (filters.group === 'all') {
+        alert('삭제할 그룹 탭을 먼저 선택해 주세요.');
+        return;
+      }
+
+      const groupName = filters.group;
+      const linkedCount = words.filter(w => w.group === groupName).length;
+      const ok = confirm(
+        `"${groupName}" 그룹을 삭제할까요?\n\n` +
+        `이 그룹에 들어 있던 단어 ${linkedCount}개는 그룹 해제 상태로 남습니다.`
+      );
+
+      if (!ok) return;
+
+      groups = groups.filter(group => group !== groupName);
+      words = words.map(word => word.group === groupName ? { ...word, group: '' } : word);
+
+      filters.group = 'all';
+      saveGroups();
+      saveWords();
+      renderAll();
+    }
+
+    function assignSelectedWordToGroup() {
+      const word = words.find(w => w.id === selectedId);
+      if (!word) {
+        alert('먼저 단어를 선택해 주세요.');
+        return;
+      }
+
+      const groupName = groupAssignSelect.value;
+      if (!groupName) {
+        alert('지정할 그룹을 선택해 주세요.');
+        return;
+      }
+
+      word.group = groupName;
+      saveWords();
+      renderAll();
+    }
+
+    function removeSelectedWordFromGroup() {
+      const word = words.find(w => w.id === selectedId);
+      if (!word) {
+        alert('먼저 단어를 선택해 주세요.');
+        return;
+      }
+
+      word.group = '';
+      saveWords();
+      renderAll();
+    }
+
+    async function refreshWord(id) {
+      const word = words.find(w => w.id === id);
+      if (!word) return;
+
+      setBusy(true, '단어 정보를 새로고침하는 중입니다...');
+
+      try {
+        const updated = await buildWordEntry(word.word, word);
+        Object.assign(word, updated, {
+          id: word.id,
+          createdAt: word.createdAt,
+          favorite: word.favorite,
+          testStats: word.testStats
+        });
+
+        word.updatedAt = new Date().toISOString();
+        saveWords();
+        renderAll();
+      } catch {
+        alert('새로고침에 실패했습니다.');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function deleteWord(id) {
+      const word = words.find(w => w.id === id);
+      if (!word) return;
+
+      if (!confirm(`"${word.word}" 단어를 삭제할까요?`)) return;
+
+      words = words.filter(w => w.id !== id);
+      if (selectedId === id) selectedId = words[0]?.id ?? null;
+
+      saveWords();
+      renderAll();
+    }
+
+    function clearAllWords() {
+      if (!confirm('저장된 단어를 모두 삭제할까요?')) return;
+
+      words = [];
+      selectedId = null;
+      testState = createEmptyTestState();
+
+      saveWords();
+      saveTestState();
+      renderAll();
+    }
+
+    // ==============================
+    // 여기부터 Step 11: 발음 기능
+    // ==============================
+    function speakWord(text, rate = 1) {
+      if (!text) return;
+
+      window.speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = pickEnglishVoiceLang();
+      utter.rate = rate;
+      utter.pitch = 1;
+
+      const voice = pickEnglishVoice();
+      if (voice) {
+        utter.voice = voice;
+      }
+
+      window.speechSynthesis.speak(utter);
+    }
+
+    function pickEnglishVoice() {
+      const voices = window.speechSynthesis.getVoices();
+      return voices.find(v => /en-US/i.test(v.lang))
+        || voices.find(v => /en-GB/i.test(v.lang))
+        || voices.find(v => /^en/i.test(v.lang))
+        || null;
+    }
+
+    function pickEnglishVoiceLang() {
+      const voice = pickEnglishVoice();
+      return voice?.lang || 'en-US';
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+
+    // ==============================
+    // 여기부터 Step 12: 테스트 엔진
+    // ==============================
+    function startTest() {
+      const mode = testModeSelect.value;
+      const range = testRangeSelect.value;
+      const pool = getTestPool(range);
+
+      if (pool.length < 4) {
+        alert('테스트를 위해 최소 4개 이상의 단어가 필요합니다.');
+        return;
+      }
+
+      testState = {
+        mode,
+        range,
+        pool: pool.map(w => w.id),
+        current: null,
+        score: { shown: 0, correct: 0, wrong: 0 },
+        answered: false
+      };
+
+      nextQuestion();
+    }
+
+    function startSingleWordTest(id) {
+      const word = words.find(w => w.id === id);
+      if (!word) return;
+
+      testState = {
+        mode: 'word_to_meaning',
+        range: 'single',
+        pool: words.slice(0, Math.max(4, words.length)).map(w => w.id),
+        current: buildQuestion('word_to_meaning', word, words),
+        score: { shown: 1, correct: 0, wrong: 0 },
+        answered: false
+      };
+
+      saveTestState();
+      renderTestPanel();
+    }
+
+    function nextQuestion() {
+      if (words.length < 4) {
+        alert('최소 4개 단어가 있어야 테스트가 가능합니다.');
+        return;
+      }
+
+      const pool = testState.pool.length
+        ? words.filter(w => testState.pool.includes(w.id))
+        : getTestPool(testRangeSelect.value);
+
+      if (pool.length < 4) {
+        alert('선택한 범위에 테스트할 단어가 부족합니다.');
+        return;
+      }
+
+      const word = pool[Math.floor(Math.random() * pool.length)];
+      const mode = testState.mode || testModeSelect.value;
+
+      testState.current = buildQuestion(mode, word, pool);
+      testState.answered = false;
+      testState.current.feedback = null;
+
+      if (!testState.score) {
+        testState.score = { shown: 0, correct: 0, wrong: 0 };
+      }
+
+      testState.score.shown += 1;
+      saveTestState();
+      renderTestPanel();
+    }
+
+    function buildQuestion(mode, word, poolSource) {
+      const pool = [...poolSource];
+      const distractors = shuffle(pool.filter(w => w.id !== word.id)).slice(0, 3);
+
+      let prompt = '';
+      let answer = '';
+      let choices = [];
+
+      if (mode === 'meaning_to_word') {
+        prompt = (word.meaningKoList && word.meaningKoList[0]) || word.meaningEnList[0] || '뜻 없음';
+        answer = word.word;
+        choices = shuffle([answer, ...distractors.map(w => w.word)]);
+      } else if (mode === 'example_blank') {
+        prompt = makeBlankExample(word.exampleEn, word.word);
+        answer = word.word;
+        choices = shuffle([answer, ...distractors.map(w => w.word)]);
+      } else {
+        prompt = word.word;
+        answer = (word.meaningKoList && word.meaningKoList[0]) || word.meaningEnList[0] || '뜻 없음';
+        choices = shuffle([
+          answer,
+          ...distractors.map(w => (w.meaningKoList && w.meaningKoList[0]) || w.meaningEnList[0] || w.word)
+        ]);
+      }
+
+      return {
+        wordId: word.id,
+        mode,
+        prompt,
+        answer,
+        choices,
+        feedback: null
+      };
+    }
+
+    function answerQuestion(choiceIndex) {
+      if (!testState.current || testState.answered) return;
+
+      const selected = testState.current.choices[choiceIndex];
+      const currentWord = words.find(w => w.id === testState.current.wordId);
+      const isCorrect = selected === testState.current.answer;
+
+      testState.answered = true;
+      testState.current.feedback = {
+        correct: isCorrect,
+        selected,
+        answer: testState.current.answer,
+        meaning: (currentWord?.meaningKoList && currentWord.meaningKoList[0]) || currentWord?.meaningEnList?.[0] || '',
+        example: currentWord?.exampleEn || ''
+      };
+
+      if (currentWord) {
+        currentWord.testStats.shown += 1;
+
+        if (isCorrect) {
+          currentWord.testStats.correct += 1;
+          testState.score.correct += 1;
+        } else {
+          currentWord.testStats.wrong += 1;
+          testState.score.wrong += 1;
+        }
+      }
+
+      saveWords();
+      saveTestState();
+      renderAll();
+    }
+
+    function speakCurrentQuestion() {
+      if (!testState.current) return;
+
+      if (testState.current.mode === 'word_to_meaning') {
+        speakWord(testState.current.prompt, 1);
+      } else {
+        const word = words.find(w => w.id === testState.current.wordId);
+        if (word) speakWord(word.word, 1);
+      }
+    }
+
+    function getTestPool(range) {
+      if (range === 'today') return words.filter(w => isToday(w.createdAt));
+      if (range === 'favorite') return words.filter(w => w.favorite);
+      if (range === 'wrong') return words.filter(w => (w.testStats?.wrong || 0) > 0);
+      return [...words];
+    }
+
+    // ==============================
+    // 여기부터 Step 13: import/export
+    // ==============================
+    function exportWords() {
+      const blob = new Blob([JSON.stringify(words, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+
+      a.href = url;
+      a.download = `english-words-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function importWords(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          if (!Array.isArray(imported)) throw new Error('Invalid JSON');
+
+          words = imported.map(w => ({
+            ...w,
+            id: w.id || `word_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            word: w.word || '',
+            phonetic: w.phonetic || '발음기호 없음',
+            partOfSpeech: w.partOfSpeech || 'unknown',
+            meaningKoList: Array.isArray(w.meaningKoList) ? w.meaningKoList : [],
+            meaningEnList: Array.isArray(w.meaningEnList) ? w.meaningEnList : [],
+            exampleEn: w.exampleEn || '',
+            exampleKo: w.exampleKo || '',
+            audio: w.audio || '',
+            createdAt: w.createdAt || new Date().toISOString(),
+            updatedAt: w.updatedAt || new Date().toISOString(),
+            favorite: !!w.favorite,
+            group: w.group || '',
+            testStats: w.testStats || { shown: 0, correct: 0, wrong: 0 }
+          }));
+
+          selectedId = words[0]?.id ?? null;
+          saveWords();
+          renderAll();
+          alert('단어 데이터를 불러왔습니다.');
+        } catch {
+          alert('올바른 JSON 파일이 아닙니다.');
+        } finally {
+          importFile.value = '';
+        }
+      };
+
+      reader.readAsText(file, 'utf-8');
+    }
+
+
+
+// ==============================
+    // 여기부터 Step 13.5: Gist 동기화
+    // ==============================
+    function syncUpToGist() {
+      if(!syncInfo.githubToken){
+        alert("먼저 ⚙️ 버튼을 눌러 GitHub 토큰을 설정해 주세요.");
+        return;
+      }
+      const btn = document.getElementById('syncUpBtn');
+      const originalText = btn.textContent;
+      btn.textContent = "저장중...";
+
+      // 👇 보안 핵심: 데이터만 포장하고 토큰은 절대 넣지 않음! 👇
+      const payload = { words: words, groups: groups, testState: testState };
+      const content = JSON.stringify(payload, null, 2);
+
+      if(!syncInfo.gistId) {
+        fetch("https://api.github.com/gists", {
+          method: "POST",
+          headers: { "Accept": "application/vnd.github+json", "Authorization": `Bearer ${syncInfo.githubToken}` },
+          body: JSON.stringify({
+            "description": "English Vocab Sync Data",
+            "public": false,
+            "files": { "vocab_data.json": { "content": content } }
+          })
+        }).then(res => res.json()).then(data => {
+          syncInfo.gistId = data.id;
+          saveSyncInfo();
+          btn.textContent = originalText;
+          alert(`새로운 구름 저장소가 만들어졌습니다! ☁️\n\n발급된 Gist ID:\n${data.id}\n\n다른 PC에서 불러올 때 설정(⚙️)에 이 ID를 넣으세요!`);
+        }).catch(err => { btn.textContent = originalText; alert("업로드 실패: " + err); });
+      } else {
+        fetch(`https://api.github.com/gists/${syncInfo.gistId}`, {
+          method: "PATCH",
+          headers: { "Accept": "application/vnd.github+json", "Authorization": `Bearer ${syncInfo.githubToken}` },
+          body: JSON.stringify({ "files": { "vocab_data.json": { "content": content } } })
+        }).then(res => {
+          btn.textContent = originalText;
+          if(res.ok) alert("구름에 성공적으로 업데이트 되었습니다! ☁️");
+          else alert("업로드 실패. 토큰이나 ID를 다시 확인하세요.");
+        }).catch(err => { btn.textContent = originalText; alert("업로드 오류: " + err); });
+      }
+    }
+
+    function syncDownFromGist() {
+      if(!syncInfo.githubToken || !syncInfo.gistId){
+        alert("먼저 ⚙️ 버튼을 눌러 GitHub 토큰과 Gist ID를 모두 설정해 주세요.");
+        return;
+      }
+      const btn = document.getElementById('syncDownBtn');
+      const originalText = btn.textContent;
+      btn.textContent = "불러오는중...";
+
+      fetch(`https://api.github.com/gists/${syncInfo.gistId}`, {
+        headers: { "Accept": "application/vnd.github+json", "Authorization": `Bearer ${syncInfo.githubToken}` }
+      }).then(res => res.json()).then(data => {
+        btn.textContent = originalText;
+        const file = data.files && data.files["vocab_data.json"];
+        if(file) {
+          try {
+            const imported = JSON.parse(file.content);
+            if(imported.words) words = imported.words;
+            if(imported.groups) groups = imported.groups;
+            if(imported.testState) testState = imported.testState;
+            
+            saveWords(); saveGroups(); saveTestState();
+            selectedId = words[0]?.id ?? null;
+            renderAll();
+            alert("구름에서 영단어장을 성공적으로 불러왔습니다! ☁️");
+          } catch(e) { alert("데이터 파싱 오류가 발생했습니다."); }
+        } else { alert("저장된 영단어장 데이터를 찾을 수 없습니다."); }
+      }).catch(err => { btn.textContent = originalText; alert("다운로드 오류: " + err); });
+    }
+
+
+
+
+
+
+
+    // ==============================
+    // 여기부터 Step 14: 유틸
+    // ==============================
+    function setBusy(isBusy, message = '') {
+      const btn = document.querySelector('#addForm button[type="submit"]');
+      if (!btn) return;
+
+      btn.disabled = isBusy;
+      btn.textContent = isBusy ? '불러오는 중...' : '단어 추가';
+      wordInput.disabled = isBusy;
+      wordInput.placeholder = isBusy ? message : '예: analyze';
+    }
+
+    function isToday(iso) {
+      const d = new Date(iso);
+      const now = new Date();
+
+      return d.getFullYear() === now.getFullYear()
+        && d.getMonth() === now.getMonth()
+        && d.getDate() === now.getDate();
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function capitalize(text) {
+      if (!text) return '';
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function makeBlankExample(example, word) {
+      if (!example || !word) return `빈칸에 들어갈 단어를 고르세요: ${word}`;
+
+      const regex = new RegExp(word, 'ig');
+      if (regex.test(example)) {
+        return example.replace(regex, '_____');
+      }
+
+      return `${example}  → 이 문장과 관련된 단어를 고르세요.`;
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function modeLabel(mode) {
+      if (mode === 'meaning_to_word') return '뜻 → 단어';
+      if (mode === 'example_blank') return '예문 빈칸 → 단어';
+      return '단어 → 뜻';
+    }
+
+    function rangeLabel(range) {
+      if (range === 'today') return '오늘 추가 단어';
+      if (range === 'favorite') return '즐겨찾기';
+      if (range === 'wrong') return '오답노트';
+      if (range === 'single') return '단일 단어';
+      return '전체 단어';
+    }
+  </script>
+</body>
+</html>
