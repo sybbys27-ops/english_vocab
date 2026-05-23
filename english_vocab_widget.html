@@ -634,12 +634,17 @@ input, select, button, textarea {
 <div class="panel-head">단어 추가 · 목록</div>
           <div class="panel-body">
 
-            <div class="row" style="margin-bottom: 12px; padding: 10px; background: #e8f1fb; border-radius: 12px; justify-content: space-between; align-items: center;">
-              <div style="font-weight: bold; color: #1f2937; font-size: 13px;">☁️ 클라우드 동기화</div>
-              <div class="row" style="margin: 0;">
-                <button id="syncSettingBtn" class="btn-soft" type="button" style="background:#555; color:#fff; border:none; padding: 6px 10px; font-size: 13px;" title="동기화 설정">⚙️</button>
-                <button id="syncUpBtn" class="btn-primary" type="button" style="background:#b1a995; border-color:#8a8373; color:#111; padding: 6px 10px; font-size: 13px;">구름저장☁️</button>
-                <button id="syncDownBtn" class="btn-primary" type="button" style="background:#e7a86b; border-color:#b58454; color:#111; padding: 6px 10px; font-size: 13px;">불러오기☁️</button>
+            <div style="margin-bottom: 12px; padding: 10px; background: #e8f1fb; border-radius: 12px; border: 1px solid var(--line);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: bold; color: #1f2937; font-size: 13px;">☁️ 클라우드 동기화</div>
+                <div class="row" style="margin: 0;">
+                  <button id="syncSettingBtn" class="btn-soft" type="button" style="background:#555; color:#fff; border:none; padding: 6px 10px; font-size: 13px;" title="동기화 설정">⚙️</button>
+                  <button id="syncUpBtn" class="btn-primary" type="button" style="background:#b1a995; border-color:#8a8373; color:#111; padding: 6px 10px; font-size: 13px;">구름저장☁️</button>
+                  <button id="syncDownBtn" class="btn-primary" type="button" style="background:#e7a86b; border-color:#b58454; color:#111; padding: 6px 10px; font-size: 13px;">불러오기☁️</button>
+                </div>
+              </div>
+              <div id="last-sync-time" style="font-size: 11px; color: var(--muted); text-align: right; margin-top: 6px;">
+                마지막 수정: 기록 없음
               </div>
             </div>
             <form id="addForm" class="add-form">
@@ -852,6 +857,59 @@ input, select, button, textarea {
     // ==============================
     // 여기부터 Step 6: 데이터 로드/저장
     // ==============================
+    const LAST_UPDATED_KEY = 'memo_widget_v2_english_last_updated';
+
+    function getSavedLastUpdated() {
+      return Number(localStorage.getItem(LAST_UPDATED_KEY)) || 0;
+    }
+
+    function updateLastUpdated(timestamp = Date.now()) {
+      localStorage.setItem(LAST_UPDATED_KEY, timestamp);
+    }
+
+    // ==========================================
+    // [공통 1단계] 타임스탬프 검사소 (Helper Function)
+    // ==========================================
+    function shouldUpdateFromCloud(localTime, cloudTime) {
+      if (!localTime) return true; 
+      if (!cloudTime) return false; 
+
+      if (cloudTime >= localTime) {
+        return true; 
+      } else {
+        return confirm(
+          "⚠️ 동기화 충돌 경고 ⚠️\n\n" +
+          "현재 내 PC에 작성된 내용이 구름(Gist) 데이터보다 더 최신입니다.\n" +
+          "과거의 구름 데이터로 정말 덮어쓰시겠습니까?\n\n" +
+          "( [취소]를 누르면 덮어쓰지 않고 현재 내용을 안전하게 유지합니다. )"
+        );
+      }
+    }
+
+    // ==========================================
+    // [보너스] 시간 변환 및 화면 출력 함수
+    // ==========================================
+    function formatTimestamp(ms) {
+      if (!ms) return "기록 없음";
+      
+      const d = new Date(ms);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    function updateTimeDisplay() {
+      const timeText = formatTimestamp(getSavedLastUpdated());
+      const el = document.getElementById("last-sync-time");
+      if (el) {
+        el.textContent = `마지막 수정: ${timeText}`;
+      }
+    }
+
     function loadWords() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -864,6 +922,7 @@ input, select, button, textarea {
 
     function saveWords() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+      updateLastUpdated();
     }
 
     function loadGroups() {
@@ -878,6 +937,7 @@ input, select, button, textarea {
 
     function saveGroups() {
       localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+      updateLastUpdated();
     }
 
     function loadTestState() {
@@ -1060,6 +1120,7 @@ input, select, button, textarea {
       renderWordList();
       renderDetail();
       renderTestPanel();
+      updateTimeDisplay();
     }
 
     function renderStats() {
@@ -1700,8 +1761,19 @@ input, select, button, textarea {
       const originalText = btn.textContent;
       btn.textContent = "저장중...";
 
+      let lastUpdated = getSavedLastUpdated();
+      if (!lastUpdated) {
+        updateLastUpdated(Date.now());
+        lastUpdated = getSavedLastUpdated();
+      }
+
       // 👇 보안 핵심: 데이터만 포장하고 토큰은 절대 넣지 않음! 👇
-      const payload = { words: words, groups: groups, testState: testState };
+      const payload = {
+        lastUpdated: lastUpdated,
+        words: words,
+        groups: groups,
+        testState: testState
+      };
       const content = JSON.stringify(payload, null, 2);
 
       if(!syncInfo.gistId) {
@@ -1749,14 +1821,27 @@ input, select, button, textarea {
         if(file) {
           try {
             const imported = JSON.parse(file.content);
-            if(imported.words) words = imported.words;
-            if(imported.groups) groups = imported.groups;
-            if(imported.testState) testState = imported.testState;
             
-            saveWords(); saveGroups(); saveTestState();
-            selectedId = words[0]?.id ?? null;
-            renderAll();
-            alert("구름에서 영단어장을 성공적으로 불러왔습니다! ☁️");
+            let cloudTime = imported.lastUpdated || 0;
+            const localTime = getSavedLastUpdated();
+
+            if (shouldUpdateFromCloud(localTime, cloudTime)) {
+              if(imported.words) words = imported.words;
+              if(imported.groups) groups = imported.groups;
+              if(imported.testState) testState = imported.testState;
+              
+              // 구름 데이터 저장 및 로컬 타임스탬프 동기화
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+              localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+              localStorage.setItem(TEST_STATE_KEY, JSON.stringify(testState));
+              updateLastUpdated(cloudTime || Date.now());
+
+              selectedId = words[0]?.id ?? null;
+              renderAll();
+              alert("구름에서 영단어장을 성공적으로 불러왔습니다! ☁️");
+            } else {
+              console.log("보호 모드 작동: 로컬 최신 데이터 유지됨");
+            }
           } catch(e) { alert("데이터 파싱 오류가 발생했습니다."); }
         } else { alert("저장된 영단어장 데이터를 찾을 수 없습니다."); }
       }).catch(err => { btn.textContent = originalText; alert("다운로드 오류: " + err); });
